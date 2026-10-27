@@ -6,6 +6,7 @@
  * itself lives in `./lib/plan.js`, which stays testable without the app.
  */
 
+import { isVolatile } from "@deepseek-ai/cosmokit"
 import z from "@deepseek-ai/schemastery"
 
 import { DEFAULTS, createUpdater, resolveSettings } from "./lib/plan.js"
@@ -41,7 +42,17 @@ export const Config = z.object({
 export function apply(ctx, rawConfig) {
   /** The live config object the loader keeps updated in place. */
   const live = () => ctx.fiber?.config ?? ctx.config ?? rawConfig ?? {}
-  const settingsOf = () => resolveSettings(live())
+  /**
+   * A volatile field is a reference the loader keeps current, not the value
+   * itself; read through it so a settings-page edit is visible here at once.
+   */
+  const pluck = (config, key) => {
+    const value = config?.[key]
+    return isVolatile(value) ? value.get() : value
+  }
+  const settingsOf = () => resolveSettings(
+    Object.fromEntries(Object.keys(DEFAULTS).map((key) => [key, pluck(live(), key)])),
+  )
 
   const updater = createUpdater({
     readSettings: settingsOf,
