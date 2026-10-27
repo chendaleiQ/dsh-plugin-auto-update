@@ -6,7 +6,6 @@
  * itself lives in `./lib/plan.js`, which stays testable without the app.
  */
 
-import { isVolatile } from "@deepseek-ai/cosmokit"
 import z from "@deepseek-ai/schemastery"
 
 import { DEFAULTS, createUpdater, resolveSettings } from "./lib/plan.js"
@@ -43,12 +42,19 @@ export function apply(ctx, rawConfig) {
   /** The live config object the loader keeps updated in place. */
   const live = () => ctx.fiber?.config ?? ctx.config ?? rawConfig ?? {}
   /**
-   * A volatile field is a reference the loader keeps current, not the value
-   * itself; read through it so a settings-page edit is visible here at once.
+   * A volatile field is a reference the loader keeps current (`{ get(), [write] }`,
+   * frozen, carrying a symbol), not the value itself; read through it so a
+   * settings-page edit is visible here at once. Detected structurally rather
+   * than through cosmokit: a link-installed plugin may only import the packages
+   * the runtime actually ships, and cosmokit is not one of them.
    */
+  const isVolatileRef = (value) => typeof value === "object"
+    && value !== null
+    && typeof value.get === "function"
+    && Object.getOwnPropertySymbols(value).length > 0
   const pluck = (config, key) => {
     const value = config?.[key]
-    return isVolatile(value) ? value.get() : value
+    return isVolatileRef(value) ? value.get() : value
   }
   const settingsOf = () => resolveSettings(
     Object.fromEntries(Object.keys(DEFAULTS).map((key) => [key, pluck(live(), key)])),
