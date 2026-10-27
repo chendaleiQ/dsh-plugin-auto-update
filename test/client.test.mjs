@@ -60,7 +60,14 @@ function load() {
     set: async () => true,
     dispose: async () => {},
   }
+  const locale = {
+    register: () => () => {},
+    bind: () => (key, params) => (params === undefined ? key : `${key}:${JSON.stringify(params)}`),
+    subscribe: () => () => {},
+    getSnapshot: () => ({ revision: 1, active: "zh-CN" }),
+  }
   const ctx = {
+    locale,
     effect: (factory) => {
       const dispose = factory()
       if (typeof dispose === "function") disposers.push(dispose)
@@ -85,7 +92,7 @@ function load() {
 
 test("the section registers on the plugin detail page", () => {
   const { registered, module } = load()
-  assert.deepEqual(Array.from(module.inject), ["slots", "configForms", "remote", "remote.pluginManager"])
+  assert.deepEqual(Array.from(module.inject), ["slots", "locale", "configForms", "remote", "remote.pluginManager"])
   assert.equal(registered.length, 1)
   assert.equal(registered[0].options.name, "plugins.detail.section")
   assert.equal(registered[0].options.id, "auto-update")
