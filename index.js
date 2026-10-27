@@ -12,6 +12,9 @@ import { DEFAULTS, createUpdater, resolveSettings } from "./lib/plan.js"
 
 export * from "./lib/plan.js"
 
+/** Settings namespace: the profile entry id this plugin's row is addressed by. */
+const NAMESPACE = "auto-update"
+
 /** Settings the plugin page edits; every field is volatile, so edits apply live. */
 export const Config = z.object({
   enabled: z.boolean().default(false).volatile(),
@@ -56,7 +59,22 @@ export function apply(ctx, rawConfig) {
     const value = config?.[key]
     return isVolatileRef(value) ? value.get() : value
   }
-  const settingsOf = () => resolveSettings(
+  /**
+   * The settings document is the source of truth: it merges the bundle defaults
+   * with the profile override the page writes, while the config object this
+   * plugin was mounted with can still be the bundle layer alone.
+   */
+  const settingsFromDocument = () => {
+    try {
+      const forms = ctx.get?.("settings")
+      const row = forms?.describe?.().find?.((item) => item.ns === NAMESPACE)
+      if (row === undefined) return undefined
+      return resolveSettings(row.value ?? {})
+    } catch {
+      return undefined
+    }
+  }
+  const settingsOf = () => settingsFromDocument() ?? resolveSettings(
     Object.fromEntries(Object.keys(DEFAULTS).map((key) => [key, pluck(live(), key)])),
   )
 
