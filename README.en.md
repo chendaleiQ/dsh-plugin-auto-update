@@ -9,6 +9,8 @@ plugin page and tick the plugins that may upgrade themselves.
 
 ![Tick the packages to update, it checks npm on a schedule, every cycle is logged](https://raw.githubusercontent.com/chendaleiQ/dsh-plugin-auto-update/main/assets/demo.gif)
 
+*(Illustration, not a screen recording.)*
+
 ## What it does
 
 - Looks up the **newest published version** of installed plugin bundles on npm

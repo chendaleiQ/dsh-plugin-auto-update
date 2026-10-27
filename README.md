@@ -8,6 +8,8 @@
 
 ![勾选允许升级的包、按计划检查 npm、结果写进日志](https://raw.githubusercontent.com/chendaleiQ/dsh-plugin-auto-update/main/assets/demo.gif)
 
+*（上图是示意图，不是录屏）*
+
 ## 它做什么
 
 - 按计划去 npm 查已安装插件的**最新版本**
