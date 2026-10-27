@@ -130,7 +130,9 @@ export function apply(ctx, rawConfig) {
       firstCheckMinutes: settings.initialDelayMinutes,
       intervalHours: settings.intervalHours,
     })
-    arm(Math.max(0, settings.initialDelayMinutes) * 60_000)
+    // The first look is capped at a minute: a long startup delay makes switching
+    // the feature on feel broken.
+    arm(Math.min(Math.max(0, settings.initialDelayMinutes), 1) * 60_000)
   }
 
   ctx.effect(() => {
@@ -144,13 +146,14 @@ export function apply(ctx, rawConfig) {
   // A settings edit is a deliberate "look now", and so is a management change;
   // without these the next look would wait for the interval to pass.
   ctx.effect(() => {
-    const host = ctx.root ?? ctx
+    // The loader emits this one filtered to the edited plugin's own fiber, so it
+    // must be heard here rather than on the root.
     const listener = () => {
       void updater.runOnce({ force: true }).catch(() => {})
     }
-    host.on?.("loader/volatile-update", listener)
+    ctx.on?.("loader/volatile-update", listener)
     return () => {
-      host.off?.("loader/volatile-update", listener)
+      ctx.off?.("loader/volatile-update", listener)
     }
   }, "auto-update: settings changes")
 
