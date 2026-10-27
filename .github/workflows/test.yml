@@ -17,3 +17,4 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: node test/index.test.mjs
+      - run: node test/client.test.mjs

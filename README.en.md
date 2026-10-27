@@ -1,12 +1,12 @@
 # dsh-plugin-auto-update
 
-Per-package automatic updates for DSH plugin bundles: you decide whether it is
-on, and which packages may update themselves.
+Per-package automatic updates for DSH plugin bundles: turn it on in the Plugins
+tab and tick the plugins that may upgrade themselves.
 
 ## What it does
 
 - Looks up the **newest published version** of installed plugin bundles on npm
-- Only touches packages you listed; local `link:` / `file:` installs, pinned
+- Only touches packages you ticked; local `link:` / `file:` installs, pinned
   versions and bundles with a manager error are skipped
 - Never jumps a **major** version and never installs a **prerelease** by default
 - Updates go through the profile's running `pluginManager` service — profile
@@ -24,40 +24,22 @@ Plugins → Install → paste this directory's absolute path:
 Restart DSH afterwards: a host half only loads on a fresh generation. Once the
 package is on npm, the package name (`dsh-plugin-auto-update`) works too.
 
-## Settings
+## Settings: a panel on the plugin's page
 
-The first start writes `~/.dsh/plugin-auto-update.json`:
+After the restart open **Plugins → dsh-plugin-auto-update**; the panel sits at
+the bottom of the detail page:
 
-| Field | Default | Meaning |
-| --- | --- | --- |
-| `enabled` | `false` | Master switch; off does nothing |
-| `packages` | `["*"]` | Allowlist. `["*"]` = every registry-installed bundle; or name packages |
-| `allowMajor` | `false` | Allow `1.x` → `2.0` |
-| `allowPrerelease` | `false` | Allow `-rc` / `-beta` |
-| `intervalHours` | `6` | How often to look |
-| `initialDelayMinutes` | `5` | First look after startup |
-| `dryRun` | `false` | Log what would happen, change nothing |
-| `maxUpdatesPerRun` | `5` | Updates per cycle |
-| `registry` | npmjs | Where versions come from; `https://registry.npmmirror.com` works |
-| `timeoutMs` | `20000` | Per-lookup timeout |
-| `notify` | `true` | macOS banner after a cycle that changed something |
-| `settingsPath` / `logPath` | `~/.dsh/…` | Where the file and the log live |
+- **Enable auto update** — the master switch, off by default
+- **Plugins that may update** — every registry-installed bundle whose dependency
+  is a range, each with a checkbox; the first row means "all of them"
+- **Version policy** — allow a new major, allow prereleases, dry run (log only)
 
-The file is re-read every cycle, so edits apply **without a restart**. Once the
-file exists it wins; `config` in `cordis.patch.yml` only seeds the first copy.
+Edits apply immediately, **without a restart**: the fields are volatile, and the
+host half reads the live values on every cycle.
 
-```jsonc
-// only my notification plugin
-{ "enabled": true, "packages": ["dsh-plugin-desktop-notify"] }
-
-// everything, but rehearse first
-{ "enabled": true, "dryRun": true }
-```
-
-## Log
-
-`~/.dsh/plugin-auto-update.log`, one JSON object per line (`schedule`, `cycle`,
-`notify`, `settings`, `plugin-started`).
+The log lives at `~/.dsh/plugin-auto-update.log`, one JSON object per line
+(`schedule`, `cycle`, `notify`, `plugin-started`; actions `current`,
+`would-update`, `updated`, `failed`, `error`).
 
 ## After an update
 
@@ -75,6 +57,13 @@ file exists it wins; `config` in `cordis.patch.yml` only seeds the first copy.
 - Registry or manager failures are logged and never interrupt the other packages
 - Desktop banners are macOS-only; other platforms keep the log
 
+## Advanced
+
+Fields the panel leaves out (`intervalHours`, `initialDelayMinutes`,
+`maxUpdatesPerRun`, `registry`, `timeoutMs`, `notify`, `logPath`) can be set in
+this bundle's `config` in the profile patch, or overridden in
+`~/.dsh/profiles/<profile>/cordis.patch.yml`. Those need a restart.
+
 ## Turning it off
 
 Disable it in the plugin page. Bundles already updated stay updated.
@@ -82,8 +71,8 @@ Disable it in the plugin page. Bundles already updated stay updated.
 ## Development
 
 ```bash
-node test/index.test.mjs
+node test/index.test.mjs    # the host half's update cycle
+node test/client.test.mjs   # the browser half's slot registration
 ```
 
-The tests use a fake plugin manager and a fake registry: no real profile,
-network, or home directory is involved.
+Both use fakes: no real profile, network, home directory, or running DSH.

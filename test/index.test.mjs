@@ -21,7 +21,7 @@ import {
   parseVersion,
   resolveSettings,
   selectCandidates,
-} from "../index.js"
+} from "../lib/plan.js"
 
 test("versions parse and compare", () => {
   assert.deepEqual(parseVersion("1.2.3"), { major: 1, minor: 2, patch: 3, prerelease: "" })
@@ -114,24 +114,17 @@ test("the registry lookup reports versions and failures", async () => {
   assert.match(broken.error, /socket closed/)
 })
 
-/** A settings file plus a manager that records what happened to it. */
+/** A config object plus a manager that records what happened to it. */
 async function harness(options = {}) {
   const directory = await mkdtemp(join(tmpdir(), "dsh-auto-update-"))
-  const settingsPath = join(directory, "settings.json")
   const logPath = join(directory, "log.jsonl")
-  const stored = {
+  const settings = resolveSettings({
     enabled: true,
     packages: ["*"],
-    allowMajor: false,
-    allowPrerelease: false,
-    intervalHours: 6,
-    initialDelayMinutes: 0,
     dryRun: false,
-    maxUpdatesPerRun: 5,
     notify: false,
     ...options.settings,
-  }
-  await writeFile(settingsPath, `${JSON.stringify(stored, null, 2)}\n`, "utf8")
+  })
   const calls = []
   const manager = {
     async listBundles() {
@@ -149,21 +142,19 @@ async function harness(options = {}) {
       return { application: "applied", changed: true }
     },
   }
-  const registry = {
-    fetchImpl: options.fetchImpl ?? (async (url) => {
-      if (url.includes("/plug/latest")) return { ok: true, json: async () => ({ version: "1.2.0" }) }
-      return { ok: true, json: async () => ({ version: "1.0.0" }) }
-    }),
-  }
+  const fetchImpl = options.fetchImpl ?? (async (url) => {
+    if (url.includes("/plug/latest")) return { ok: true, json: async () => ({ version: "1.2.0" }) }
+    return { ok: true, json: async () => ({ version: "1.0.0" }) }
+  })
   const updater = createUpdater({
-    settingsPath,
+    readSettings: () => settings,
     logPath,
     manager: options.manager === null ? undefined : () => manager,
-    fetchImpl: registry.fetchImpl,
+    fetchImpl,
     announce: false,
     cooldownMs: 0,
   })
-  return { updater, calls, settingsPath, logPath }
+  return { updater, calls, logPath, settings }
 }
 
 test("a disabled cycle touches nothing", async () => {
@@ -213,19 +204,16 @@ test("without a plugin manager the cycle is skipped", async () => {
   assert.equal(result.skipped, "no-plugin-manager")
 })
 
-test("a missing settings file is seeded with the defaults", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "dsh-auto-update-seed-"))
-  const settingsPath = join(directory, "settings.json")
-  const updater = createUpdater({
-    settingsPath,
-    logPath: join(directory, "log.jsonl"),
-    manager: () => undefined,
-    config: { enabled: false, packages: ["plug"] },
-    cooldownMs: 0,
-  })
-  const settings = await updater.settings()
+test("defaults keep the plugin off and cover every field", () => {
+  const settings = resolveSettings({})
   assert.equal(settings.enabled, false)
-  assert.deepEqual(settings.packages, ["plug"])
-  const written = JSON.parse(await readFile(settingsPath, "utf8"))
-  assert.equal(written.intervalHours, 6)
+  assert.deepEqual(settings.packages, ["*"])
+  assert.equal(settings.allowMajor, false)
+  assert.equal(settings.allowPrerelease, false)
+  assert.equal(settings.intervalHours, 6)
+  assert.equal(settings.initialDelayMinutes, 5)
+  assert.equal(settings.maxUpdatesPerRun, 5)
+  assert.equal(settings.dryRun, false)
+  assert.equal(settings.notify, true)
+  assert.match(settings.logPath, /plugin-auto-update\.log$/)
 })

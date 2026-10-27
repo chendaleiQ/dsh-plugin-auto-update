@@ -1,23 +1,25 @@
 # The dsh-plugin-auto-update bundle patch.
 #
-# Host half only: there is no `dsh.client` entry, so nothing is injected into
-# the renderer. The row keeps the bundle selectable in the plugin manager.
-#
-# Configuration lives in `~/.dsh/plugin-auto-update.json`, which is created on
-# the first start from the values below. After that the file is the source of
-# truth (it is re-read on every cycle, so edits apply without a restart).
+# Host half (`index.js`) runs the update cycle through the profile's own
+# pluginManager service. Browser half (`lib/client.js`) puts a panel on this
+# bundle's page in the Plugins tab; that panel writes the volatile fields below
+# through the settings service, so edits apply without a restart.
 - insert:
     - id: auto-update
       name: 'dsh-plugin-auto-update'
       config:
-        # Nothing is updated until this is switched on in the JSON file.
+        # Nothing is updated until this is switched on in the panel.
         enabled: false
-        # ["*"] = every bundle installed from a registry; or name the packages.
+        # ["*"] = every registry-installed bundle; or name the packages.
         packages:
           - '*'
         allowMajor: false
         allowPrerelease: false
+        dryRun: false
         intervalHours: 6
         initialDelayMinutes: 5
-        dryRun: false
         maxUpdatesPerRun: 5
+        registry: 'https://registry.npmjs.org'
+        timeoutMs: 20000
+        notify: true
+        logPath: '~/.dsh/plugin-auto-update.log'
