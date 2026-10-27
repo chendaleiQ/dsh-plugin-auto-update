@@ -1,7 +1,7 @@
 # dsh-plugin-auto-update
 
-Per-package automatic updates for DSH plugin bundles: turn it on in the Plugins
-tab and tick the plugins that may upgrade themselves.
+Automatic, per-package updates for the DSH plugins you choose: switch it on in the
+plugin page and tick the plugins that may upgrade themselves.
 
 ## What it does
 
@@ -9,71 +9,68 @@ tab and tick the plugins that may upgrade themselves.
 - Only touches packages you ticked; local `link:` / `file:` installs, pinned
   versions and bundles with a manager error are skipped
 - Never jumps a **major** version and never installs a **prerelease** by default
-- Updates go through the profile's running `pluginManager` service — profile
-  write lock, pnpm run, bundle-patch check and HMR reload all stay with it. A
-  failed install **reinstalls the previous version**
+- Updates go through the profile's running `pluginManager` — profile write lock,
+  pnpm run, bundle-patch check and HMR reload stay with it. A failed install
+  **reinstalls the previous version**
 
 ## Install
 
-Plugins → Install → paste this directory's absolute path:
+Plugins → Install → paste the package name:
 
 ```
-/Users/<you>/Desktop/mine/dsh-plugins/dsh-plugin-auto-update
+dsh-plugin-auto-update
 ```
 
-Restart DSH afterwards: a host half only loads on a fresh generation. Once the
-package is on npm, the package name (`dsh-plugin-auto-update`) works too.
+Restart DSH afterwards: a host half only loads on a fresh generation. The GitHub
+address and an absolute local directory work the same way.
 
 ## Settings: a panel on the plugin's page
 
-After the restart open **Plugins → dsh-plugin-auto-update**; the panel sits at
-the bottom of the detail page:
+Plugins → **DSH Plugin Auto Update**, at the bottom of the detail page:
 
 - **Enable auto update** — the master switch, off by default
-- **Plugins that may update** — every registry-installed bundle whose dependency
-  is a range, each with a checkbox; the first row means "all of them"
 - **Version policy** — allow a new major, allow prereleases
+- **Plugins that may update** — every registry-installed bundle, each with a
+  checkbox; the first row means "all of them"
+- A bundle that cannot update is greyed out with its reason (local install,
+  pinned, or has an error)
 
-Edits apply immediately, **without a restart**: the fields are volatile, and the
-host half reads the live values on every cycle.
+Edits apply immediately; no restart.
 
-The log lives at `~/.dsh/plugin-auto-update.log`, one JSON object per line
-(`schedule`, `cycle`, `notify`, `plugin-started`; actions `current`,
-`would-update`, `updated`, `failed`, `error`).
+## Language
 
-## After an update
+The copy follows DSH's language setting: Chinese by default, English once the app
+is switched.
 
-- A **renderer half** is swapped by HMR; nothing to do
-- A **host half** needs a DSH restart; the log and the banner say so through
-  `restartReason`
-- The app never restarts itself — you pick the moment
+## Log
+
+`~/.dsh/plugin-auto-update.log`, one JSON object per line (`schedule`, `cycle`,
+`notify`, `plugin-started`; actions `current`, `would-update`, `updated`,
+`failed`, `error`).
 
 ## Deliberate limits
 
 - Only registry-installed bundles whose dependency is a range (`^`, `~`, `*`,
-  `latest`). `link:` / `file:` and exact pins are never touched
-- Bundles shipped with the app (`availability: "installation"`) are never touched
-- Versions only: your patches and other configuration stay as they are
+  `latest`); `link:` / `file:` and exact pins are never touched
+- Bundles shipped with the app are never touched; your other configuration stays
+  as it is
 - Registry or manager failures are logged and never interrupt the other packages
-- Desktop banners are macOS-only; other platforms keep the log
+- A host half needs an app restart; a renderer half is swapped by HMR
 
 ## Advanced
 
-The check interval (`intervalHours`, six hours by default), the first-look delay
-(`initialDelayMinutes`), `maxUpdatesPerRun`, `dryRun`, `registry`, `timeoutMs`, `notify` and
-`logPath` stay out of the panel: set them in this bundle's `config` in the profile
-patch, or override the same row in `~/.dsh/profiles/<profile>/cordis.patch.yml`.
-Those need a restart.
-
-## Turning it off
-
-Disable it in the plugin page. Bundles already updated stay updated.
+Fields the panel leaves out (`intervalHours`, six hours by default,
+`initialDelayMinutes`, `maxUpdatesPerRun`, `dryRun`, `registry`, `timeoutMs`,
+`notify`, `logPath`) live in this bundle's `config` in the profile patch, or as an
+override in `~/.dsh/profiles/<profile>/cordis.patch.yml`. Those need a restart.
 
 ## Development
 
 ```bash
 node test/index.test.mjs    # the host half's update cycle
-node test/client.test.mjs   # the browser half's slot registration
+node test/client.test.mjs   # the renderer half: slot, remote envelope, labels
 ```
 
-Both use fakes: no real profile, network, home directory, or running DSH.
+## License
+
+MIT · https://github.com/chendaleiQ/dsh-plugin-auto-update

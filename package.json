@@ -1,7 +1,7 @@
 {
   "name": "dsh-plugin-auto-update",
-  "version": "0.1.14",
-  "description": "Per-package automatic updates for DSH plugin bundles, configured by an allowlist",
+  "version": "0.1.15",
+  "description": "Automatic updates for the plugin bundles you choose in DeepSeek Harness, per package, through the plugin manager",
   "license": "MIT",
   "type": "module",
   "main": "index.js",
@@ -24,6 +24,7 @@
     "index.js",
     "lib/",
     "locale/",
+    "icon.svg",
     "cordis.patch.yml",
     "README.md",
     "README.en.md",
@@ -47,10 +48,12 @@
   "exports": {
     ".": "./index.js",
     "./client": "./lib/client.js",
+    "./icon": "./icon.svg",
     "./locale/*.json": "./locale/*.json",
     "./package.json": "./package.json"
   },
   "peerDependencies": {
     "@deepseek-ai/schemastery": "*"
-  }
+  },
+  "icon": "./icon.svg"
 }

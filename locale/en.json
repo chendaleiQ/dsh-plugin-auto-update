@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Auto Update",
-    "description": "Keep the plugin bundles you choose on their newest release, per package."
+    "title": "DSH Plugin Auto Update",
+    "description": "Keeps the plugins you tick on their newest release: checks npm on a schedule and updates through the plugin manager, rolling back on failure."
   }
 }
