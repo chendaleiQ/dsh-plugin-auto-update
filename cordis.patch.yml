@@ -6,7 +6,7 @@
 # through the settings service, so edits apply without a restart.
 - insert:
     - id: auto-update
-      name: 'dsh-plugin-auto-update'
+      name: '@chendaleiq/dsh-plugin-auto-update'
       config:
         # Nothing is updated until this is switched on in the panel.
         enabled: false

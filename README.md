@@ -14,7 +14,7 @@
 插件页 → 安装 → 填包名：
 
 ```
-dsh-plugin-auto-update
+@chendaleiq/dsh-plugin-auto-update
 ```
 
 装完**重启 DSH**（宿主半边需要新代际才加载）。也可以填 GitHub 地址或本地目录的绝对路径。

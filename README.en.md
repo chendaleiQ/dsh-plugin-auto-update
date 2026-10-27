@@ -18,7 +18,7 @@ plugin page and tick the plugins that may upgrade themselves.
 Plugins → Install → paste the package name:
 
 ```
-dsh-plugin-auto-update
+@chendaleiq/dsh-plugin-auto-update
 ```
 
 Restart DSH afterwards: a host half only loads on a fresh generation. The GitHub
