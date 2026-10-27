@@ -1,6 +1,6 @@
 {
   "name": "@chendaleiq/dsh-plugin-auto-update",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "description": "Automatic updates for the plugin bundles you choose in DeepSeek Harness, per package, through the plugin manager",
   "license": "MIT",
   "type": "module",

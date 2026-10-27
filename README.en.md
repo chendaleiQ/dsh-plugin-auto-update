@@ -31,6 +31,7 @@ Plugins → **DSH Plugin Auto Update**, at the bottom of the detail page:
 - **Version policy** — allow a new major, allow prereleases
 - **Plugins that may update** — every registry-installed bundle, each with a
   checkbox; the first row means "all of them"
+- **Check now** — runs a cycle immediately instead of waiting for the schedule
 - To stop it, switch the bundle off in the plugin page; there is no separate
   switch inside the panel
 - A bundle that cannot update is greyed out with its reason (local install,

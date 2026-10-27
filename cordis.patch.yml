@@ -11,6 +11,7 @@
         # Hidden in the panel: the bundle switch in the plugin page is the
         # visible way to stop updates. This stays as an advanced kill switch.
         enabled: true
+        trigger: 0
         # ["*"] = every registry-installed bundle; or name the packages.
         packages:
           - '*'

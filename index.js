@@ -18,6 +18,8 @@ const NAMESPACE = "auto-update"
 /** Settings the plugin page edits; every field is volatile, so edits apply live. */
 export const Config = z.object({
   enabled: z.boolean().default(true).volatile(),
+  /** Bumped by the panel's check-now button; a write alone starts a cycle. */
+  trigger: z.number().default(0).volatile(),
   packages: z.array(z.string()).default(["*"]).volatile(),
   allowMajor: z.boolean().default(false).volatile(),
   allowPrerelease: z.boolean().default(false).volatile(),
