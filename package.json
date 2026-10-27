@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-auto-update",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "Per-package automatic updates for DSH plugin bundles, configured by an allowlist",
   "license": "MIT",
   "type": "module",
