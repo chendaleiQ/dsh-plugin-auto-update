@@ -92,7 +92,7 @@ function load() {
 
 test("the section registers on the plugin detail page", () => {
   const { registered, module } = load()
-  assert.deepEqual(Array.from(module.inject), ["slots", "locale", "configForms", "remote", "remote.pluginManager"])
+  assert.deepEqual(Array.from(module.inject), ["slots", "locale", "configForms", "remote", "remote.pluginManager", "remote.settings"])
   assert.equal(registered.length, 1)
   assert.equal(registered[0].options.name, "plugins.detail.section")
   assert.equal(registered[0].options.id, "auto-update")
