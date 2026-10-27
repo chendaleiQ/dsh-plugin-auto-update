@@ -103,3 +103,25 @@ test("the section registers on the plugin detail page", () => {
 test("loading twice does not throw on a missing document body", () => {
   assert.doesNotThrow(() => load())
 })
+
+test("a remote answer is unwrapped, and a refusal keeps its reason", () => {
+  const { module } = load()
+  const { listFromResponse, installedBundles } = module.internals
+  const rows = [{ name: "plug", version: "1.0.0", availability: "profile", installed: true, source: "^1.0.0" }]
+  assert.deepEqual(installedBundles(listFromResponse({ ok: true, value: rows })).map((item) => item.name), ["plug"])
+  assert.throws(() => listFromResponse({ ok: false, error: { code: "unavailable" } }), /unavailable/)
+  assert.throws(() => listFromResponse(undefined), /refused/)
+  assert.deepEqual(installedBundles(listFromResponse({ ok: true, value: [] })), [])
+})
+
+test("a bundle is labelled with why it cannot update", () => {
+  const { module } = load()
+  const { installedBundles } = module.internals
+  const labelled = installedBundles([
+    { name: "a", version: "1.0.0", availability: "profile", installed: true, source: "^1.0.0" },
+    { name: "b", version: "1.0.0", availability: "profile", installed: true, source: "link:../b" },
+    { name: "c", version: "1.0.0", availability: "profile", installed: true, source: "1.0.0" },
+    { name: "d", version: "1.0.0", availability: "installation", installed: false },
+  ])
+  assert.deepEqual(labelled.map((item) => [item.name, item.blocked]), [["a", null], ["b", "local"], ["c", "pinned"]])
+})
