@@ -53,7 +53,7 @@
 
 ## 高级配置
 
-面板没覆盖的字段（`intervalHours` 默认 6 小时、`initialDelayMinutes`、`maxUpdatesPerRun`、`dryRun`、`registry`、`timeoutMs`、`notify`、`logPath`）写在 profile patch 的 `config` 里，或覆盖 `~/.dsh/profiles/<profile>/cordis.patch.yml` 的同一行。改完需要重启。
+面板没覆盖的字段（`intervalHours` 默认 6 小时、`initialDelayMinutes`、`maxUpdatesPerRun`、`dryRun`、`registry`、`timeoutMs`、`logPath`）写在 profile patch 的 `config` 里，或覆盖 `~/.dsh/profiles/<profile>/cordis.patch.yml` 的同一行。改完需要重启。
 
 ## 开发
 

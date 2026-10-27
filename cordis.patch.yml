@@ -8,8 +8,9 @@
     - id: auto-update
       name: '@chendaleiq/dsh-plugin-auto-update'
       config:
-        # Nothing is updated until this is switched on in the panel.
-        enabled: false
+        # Hidden in the panel: the bundle switch in the plugin page is the
+        # visible way to stop updates. This stays as an advanced kill switch.
+        enabled: true
         # ["*"] = every registry-installed bundle; or name the packages.
         packages:
           - '*'
@@ -21,5 +22,4 @@
         maxUpdatesPerRun: 5
         registry: 'https://registry.npmjs.org'
         timeoutMs: 20000
-        notify: true
         logPath: '~/.dsh/plugin-auto-update.log'

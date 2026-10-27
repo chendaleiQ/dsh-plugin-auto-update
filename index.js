@@ -17,7 +17,7 @@ const NAMESPACE = "auto-update"
 
 /** Settings the plugin page edits; every field is volatile, so edits apply live. */
 export const Config = z.object({
-  enabled: z.boolean().default(false).volatile(),
+  enabled: z.boolean().default(true).volatile(),
   packages: z.array(z.string()).default(["*"]).volatile(),
   allowMajor: z.boolean().default(false).volatile(),
   allowPrerelease: z.boolean().default(false).volatile(),
@@ -27,7 +27,6 @@ export const Config = z.object({
   maxUpdatesPerRun: z.number().default(5).volatile(),
   registry: z.string().default("https://registry.npmjs.org").volatile(),
   timeoutMs: z.number().default(20000).volatile(),
-  notify: z.boolean().default(true).volatile(),
   logPath: z.string().default("~/.dsh/plugin-auto-update.log").volatile(),
 })
 

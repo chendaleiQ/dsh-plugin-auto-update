@@ -122,7 +122,6 @@ async function harness(options = {}) {
     enabled: true,
     packages: ["*"],
     dryRun: false,
-    notify: false,
     ...options.settings,
   })
   const calls = []
@@ -151,7 +150,6 @@ async function harness(options = {}) {
     logPath,
     manager: options.manager === null ? undefined : () => manager,
     fetchImpl,
-    announce: false,
     cooldownMs: 0,
   })
   return { updater, calls, logPath, settings }
@@ -204,9 +202,9 @@ test("without a plugin manager the cycle is skipped", async () => {
   assert.equal(result.skipped, "no-plugin-manager")
 })
 
-test("defaults keep the plugin off and cover every field", () => {
+test("defaults are on and cover every field", () => {
   const settings = resolveSettings({})
-  assert.equal(settings.enabled, false)
+  assert.equal(settings.enabled, true)
   assert.deepEqual(settings.packages, ["*"])
   assert.equal(settings.allowMajor, false)
   assert.equal(settings.allowPrerelease, false)
@@ -214,6 +212,5 @@ test("defaults keep the plugin off and cover every field", () => {
   assert.equal(settings.initialDelayMinutes, 1)
   assert.equal(settings.maxUpdatesPerRun, 5)
   assert.equal(settings.dryRun, false)
-  assert.equal(settings.notify, true)
   assert.match(settings.logPath, /plugin-auto-update\.log$/)
 })

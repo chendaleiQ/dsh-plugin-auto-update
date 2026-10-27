@@ -28,10 +28,11 @@ address and an absolute local directory work the same way.
 
 Plugins → **DSH Plugin Auto Update**, at the bottom of the detail page:
 
-- **Enable auto update** — the master switch, off by default
 - **Version policy** — allow a new major, allow prereleases
 - **Plugins that may update** — every registry-installed bundle, each with a
   checkbox; the first row means "all of them"
+- To stop it, switch the bundle off in the plugin page; there is no separate
+  switch inside the panel
 - A bundle that cannot update is greyed out with its reason (local install,
   pinned, or has an error)
 
@@ -61,7 +62,7 @@ is switched.
 
 Fields the panel leaves out (`intervalHours`, six hours by default,
 `initialDelayMinutes`, `maxUpdatesPerRun`, `dryRun`, `registry`, `timeoutMs`,
-`notify`, `logPath`) live in this bundle's `config` in the profile patch, or as an
+`logPath`) live in this bundle's `config` in the profile patch, or as an
 override in `~/.dsh/profiles/<profile>/cordis.patch.yml`. Those need a restart.
 
 ## Development
