@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-auto-update",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Per-package automatic updates for DSH plugin bundles, configured by an allowlist",
   "license": "MIT",
   "type": "module",
@@ -23,6 +23,7 @@
   "files": [
     "index.js",
     "lib/",
+    "locale/",
     "cordis.patch.yml",
     "README.md",
     "README.en.md",
