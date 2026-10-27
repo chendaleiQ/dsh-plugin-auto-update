@@ -28,7 +28,7 @@
 - **启用自动更新** — 总开关，默认关
 - **自动更新的插件** — 列出所有「从注册表安装、依赖写成范围」的插件，逐个勾选；
   第一行「全部可更新的插件」= 用通配符匹配所有
-- **升级范围** — 允许跨大版本 / 允许预发布 / 仅演练（只写日志）
+- **升级范围** — 允许跨大版本 / 允许预发布
 
 改动即时生效，**不需要重启**：这些字段是 volatile 配置，宿主半边在每轮检查时读最新值。
 
@@ -58,7 +58,7 @@
 ## 高级配置
 
 检查间隔（`intervalHours`，默认 6 小时）、首次延迟（`initialDelayMinutes`）、单轮上限
-（`maxUpdatesPerRun`）、`registry`、`timeoutMs`、`notify`、`logPath` 不在面板里，需要在
+（`maxUpdatesPerRun`）、仅演练（`dryRun`）、`registry`、`timeoutMs`、`notify`、`logPath` 不在面板里，需要在
 本 bundle 的 profile patch 里写 `config`，或覆盖
 `~/.dsh/profiles/<profile>/cordis.patch.yml` 里的同一行。改完需要重启。
 

@@ -32,7 +32,7 @@ the bottom of the detail page:
 - **Enable auto update** — the master switch, off by default
 - **Plugins that may update** — every registry-installed bundle whose dependency
   is a range, each with a checkbox; the first row means "all of them"
-- **Version policy** — allow a new major, allow prereleases, dry run (log only)
+- **Version policy** — allow a new major, allow prereleases
 
 Edits apply immediately, **without a restart**: the fields are volatile, and the
 host half reads the live values on every cycle.
@@ -60,7 +60,7 @@ The log lives at `~/.dsh/plugin-auto-update.log`, one JSON object per line
 ## Advanced
 
 The check interval (`intervalHours`, six hours by default), the first-look delay
-(`initialDelayMinutes`), `maxUpdatesPerRun`, `registry`, `timeoutMs`, `notify` and
+(`initialDelayMinutes`), `maxUpdatesPerRun`, `dryRun`, `registry`, `timeoutMs`, `notify` and
 `logPath` stay out of the panel: set them in this bundle's `config` in the profile
 patch, or override the same row in `~/.dsh/profiles/<profile>/cordis.patch.yml`.
 Those need a restart.
