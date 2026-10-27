@@ -3,6 +3,12 @@
 Automatic, per-package updates for the DSH plugins you choose: switch it on in the
 plugin page and tick the plugins that may upgrade themselves.
 
+[![npm](https://img.shields.io/npm/v/@chendaleiq%2Fdsh-plugin-auto-update)](https://www.npmjs.com/package/@chendaleiq/dsh-plugin-auto-update)
+[![license](https://img.shields.io/npm/l/@chendaleiq%2Fdsh-plugin-auto-update)](LICENSE)
+[![DeepSeek Harness plugin](https://img.shields.io/badge/DSH-plugin-4D6BFE)](https://github.com/chendaleiQ/dsh-plugin-auto-update)
+
+![Tick the packages to update, it checks npm on a schedule, every cycle is logged](https://raw.githubusercontent.com/chendaleiQ/dsh-plugin-auto-update/main/assets/demo.gif)
+
 ## What it does
 
 - Looks up the **newest published version** of installed plugin bundles on npm

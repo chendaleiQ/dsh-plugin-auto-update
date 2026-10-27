@@ -2,6 +2,12 @@
 
 给 DSH 插件做**按包白名单的自动更新**：在插件页打开开关、勾选允许自动升级的插件即可。
 
+[![npm](https://img.shields.io/npm/v/@chendaleiq%2Fdsh-plugin-auto-update)](https://www.npmjs.com/package/@chendaleiq/dsh-plugin-auto-update)
+[![license](https://img.shields.io/npm/l/@chendaleiq%2Fdsh-plugin-auto-update)](LICENSE)
+[![DeepSeek Harness plugin](https://img.shields.io/badge/DSH-plugin-4D6BFE)](https://github.com/chendaleiQ/dsh-plugin-auto-update)
+
+![勾选允许升级的包、按计划检查 npm、结果写进日志](https://raw.githubusercontent.com/chendaleiQ/dsh-plugin-auto-update/main/assets/demo.gif)
+
 ## 它做什么
 
 - 按计划去 npm 查已安装插件的**最新版本**
