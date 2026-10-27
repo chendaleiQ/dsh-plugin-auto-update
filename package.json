@@ -1,0 +1,38 @@
+{
+  "name": "dsh-plugin-auto-update",
+  "version": "0.1.0",
+  "description": "Per-package automatic updates for DSH plugin bundles, configured by an allowlist",
+  "license": "MIT",
+  "type": "module",
+  "main": "index.js",
+  "author": "chendaleiQ",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chendaleiQ/dsh-plugin-auto-update.git"
+  },
+  "homepage": "https://github.com/chendaleiQ/dsh-plugin-auto-update#readme",
+  "bugs": {
+    "url": "https://github.com/chendaleiQ/dsh-plugin-auto-update/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "plugin-updater",
+    "auto-update"
+  ],
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "README.md",
+    "README.en.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node test/index.test.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
