@@ -30,6 +30,7 @@ After the restart open **Plugins → dsh-plugin-auto-update**; the panel sits at
 the bottom of the detail page:
 
 - **Enable auto update** — the master switch, off by default
+- **Check interval** — 1 / 3 / 6 / 12 / 24 hours, six by default
 - **Plugins that may update** — every registry-installed bundle whose dependency
   is a range, each with a checkbox; the first row means "all of them"
 - **Version policy** — allow a new major, allow prereleases, dry run (log only)

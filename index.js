@@ -130,9 +130,7 @@ export function apply(ctx, rawConfig) {
       firstCheckMinutes: settings.initialDelayMinutes,
       intervalHours: settings.intervalHours,
     })
-    // The first look is capped at a minute: a long startup delay makes switching
-    // the feature on feel broken.
-    arm(Math.min(Math.max(0, settings.initialDelayMinutes), 1) * 60_000)
+    arm(Math.max(0, settings.initialDelayMinutes) * 60_000)
   }
 
   ctx.effect(() => {
