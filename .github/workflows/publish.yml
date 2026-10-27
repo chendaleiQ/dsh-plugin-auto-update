@@ -19,8 +19,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - run: node test/index.test.mjs
       - run: node test/client.test.mjs
-      - run: node test/host.test.mjs /tmp/dsh-notify-host-test.log
       - name: tag matches package.json
         run: |
           tag="${GITHUB_REF_NAME#v}"
