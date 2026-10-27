@@ -211,7 +211,7 @@ test("defaults keep the plugin off and cover every field", () => {
   assert.equal(settings.allowMajor, false)
   assert.equal(settings.allowPrerelease, false)
   assert.equal(settings.intervalHours, 6)
-  assert.equal(settings.initialDelayMinutes, 5)
+  assert.equal(settings.initialDelayMinutes, 1)
   assert.equal(settings.maxUpdatesPerRun, 5)
   assert.equal(settings.dryRun, false)
   assert.equal(settings.notify, true)

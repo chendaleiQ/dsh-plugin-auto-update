@@ -17,7 +17,7 @@
         allowPrerelease: false
         dryRun: false
         intervalHours: 6
-        initialDelayMinutes: 5
+        initialDelayMinutes: 1
         maxUpdatesPerRun: 5
         registry: 'https://registry.npmjs.org'
         timeoutMs: 20000

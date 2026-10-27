@@ -20,7 +20,7 @@ export const Config = z.object({
   allowPrerelease: z.boolean().default(false).volatile(),
   dryRun: z.boolean().default(false).volatile(),
   intervalHours: z.number().default(6).volatile(),
-  initialDelayMinutes: z.number().default(5).volatile(),
+  initialDelayMinutes: z.number().default(1).volatile(),
   maxUpdatesPerRun: z.number().default(5).volatile(),
   registry: z.string().default("https://registry.npmjs.org").volatile(),
   timeoutMs: z.number().default(20000).volatile(),
@@ -122,6 +122,19 @@ export function apply(ctx, rawConfig) {
       clearTimeout(timer)
     }
   }, "auto-update: schedule")
+
+  // A settings edit is a deliberate "look now", and so is a management change;
+  // without these the next look would wait for the interval to pass.
+  ctx.effect(() => {
+    const host = ctx.root ?? ctx
+    const listener = () => {
+      void updater.runOnce({ force: true }).catch(() => {})
+    }
+    host.on?.("loader/volatile-update", listener)
+    return () => {
+      host.off?.("loader/volatile-update", listener)
+    }
+  }, "auto-update: settings changes")
 
   // A management change is the natural moment to look again; the next tick
   // would otherwise wait for the interval to pass.
