@@ -26,7 +26,6 @@
 重启后打开 **插件 → dsh-plugin-auto-update**，详情页底部就是配置面板：
 
 - **启用自动更新** — 总开关，默认关
-- **检查间隔** — 1 / 3 / 6 / 12 / 24 小时，默认 6 小时
 - **自动更新的插件** — 列出所有「从注册表安装、依赖写成范围」的插件，逐个勾选；
   第一行「全部可更新的插件」= 用通配符匹配所有
 - **升级范围** — 允许跨大版本 / 允许预发布 / 仅演练（只写日志）
@@ -58,10 +57,10 @@
 
 ## 高级配置
 
-面板没覆盖的字段（检查间隔 `intervalHours`、首次延迟 `initialDelayMinutes`、
-单轮上限 `maxUpdatesPerRun`、`registry`、`timeoutMs`、`notify`、`logPath`）可以在
-本 bundle 的 profile patch 里写 `config`；也可以在
-`~/.dsh/profiles/<profile>/cordis.patch.yml` 里覆盖同一行。改完需要重启。
+检查间隔（`intervalHours`，默认 6 小时）、首次延迟（`initialDelayMinutes`）、单轮上限
+（`maxUpdatesPerRun`）、`registry`、`timeoutMs`、`notify`、`logPath` 不在面板里，需要在
+本 bundle 的 profile patch 里写 `config`，或覆盖
+`~/.dsh/profiles/<profile>/cordis.patch.yml` 里的同一行。改完需要重启。
 
 ## 停用
 

@@ -30,7 +30,6 @@ After the restart open **Plugins → dsh-plugin-auto-update**; the panel sits at
 the bottom of the detail page:
 
 - **Enable auto update** — the master switch, off by default
-- **Check interval** — 1 / 3 / 6 / 12 / 24 hours, six by default
 - **Plugins that may update** — every registry-installed bundle whose dependency
   is a range, each with a checkbox; the first row means "all of them"
 - **Version policy** — allow a new major, allow prereleases, dry run (log only)
@@ -60,10 +59,11 @@ The log lives at `~/.dsh/plugin-auto-update.log`, one JSON object per line
 
 ## Advanced
 
-Fields the panel leaves out (`intervalHours`, `initialDelayMinutes`,
-`maxUpdatesPerRun`, `registry`, `timeoutMs`, `notify`, `logPath`) can be set in
-this bundle's `config` in the profile patch, or overridden in
-`~/.dsh/profiles/<profile>/cordis.patch.yml`. Those need a restart.
+The check interval (`intervalHours`, six hours by default), the first-look delay
+(`initialDelayMinutes`), `maxUpdatesPerRun`, `registry`, `timeoutMs`, `notify` and
+`logPath` stay out of the panel: set them in this bundle's `config` in the profile
+patch, or override the same row in `~/.dsh/profiles/<profile>/cordis.patch.yml`.
+Those need a restart.
 
 ## Turning it off
 
