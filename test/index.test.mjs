@@ -14,11 +14,17 @@ import test from "node:test"
 
 import {
   acceptsUpdate,
+  appendHistory,
+  clearHistory,
   compareVersions,
   createUpdater,
+  historyRecordOf,
+  historyRecordsOf,
   isFloatingSpec,
   newestVersion,
+  normalizeHistoryLimit,
   parseVersion,
+  readHistoryDocument,
   resolveSettings,
   selectCandidates,
 } from "../lib/plan.js"
@@ -118,11 +124,14 @@ test("the registry lookup reports versions and failures", async () => {
 async function harness(options = {}) {
   const directory = await mkdtemp(join(tmpdir(), "dsh-auto-update-"))
   const logPath = join(directory, "log.jsonl")
+  const historyPath = join(directory, "history.json")
   const settings = resolveSettings({
     enabled: true,
     packages: ["*"],
     dryRun: false,
     ...options.settings,
+    logPath,
+    historyPath,
   })
   const calls = []
   const manager = {
@@ -152,7 +161,7 @@ async function harness(options = {}) {
     fetchImpl,
     cooldownMs: 0,
   })
-  return { updater, calls, logPath, settings }
+  return { updater, calls, logPath, historyPath, settings }
 }
 
 test("a disabled cycle touches nothing", async () => {
@@ -213,4 +222,115 @@ test("defaults are on and cover every field", () => {
   assert.equal(settings.maxUpdatesPerRun, 5)
   assert.equal(settings.dryRun, false)
   assert.match(settings.logPath, /plugin-auto-update\.log$/)
+})
+
+test("defaults name a history file and a record limit", () => {
+  const settings = resolveSettings({})
+  assert.match(settings.historyPath, /plugin-auto-update-history\.json$/)
+  assert.equal(settings.historyLimit, 200)
+  assert.equal(normalizeHistoryLimit(0), 1)
+  assert.equal(normalizeHistoryLimit(12345), 2000)
+  assert.equal(normalizeHistoryLimit("many"), 200)
+})
+
+test("only decisions about a version become records", () => {
+  const at = "2026-11-05T01:00:00.000Z"
+  assert.deepEqual(
+    historyRecordOf({ name: "plug", installed: "1.0.0", latest: "1.1.0", action: "updated", application: "applied" }, at),
+    { at, name: "plug", from: "1.0.0", to: "1.1.0", action: "updated", application: "applied" },
+  )
+  assert.equal(historyRecordOf({ name: "plug", installed: "1.0.0", latest: "1.0.0", action: "current" }, at), null)
+  assert.equal(historyRecordOf({ name: "plug", action: "error", reason: "fetch failed" }, at), null)
+  assert.deepEqual(
+    historyRecordsOf(
+      [
+        { name: "a", installed: "1.0.0", latest: "1.0.0", action: "current" },
+        { name: "b", installed: "1.0.0", latest: "1.2.0", action: "failed", reason: "network", rolledBack: true },
+      ],
+      at,
+    ).map((record) => [record.name, record.action, record.rolledBack]),
+    [["b", "failed", true]],
+  )
+})
+
+test("an update lands in the history the panel reads", async () => {
+  const { updater, historyPath } = await harness()
+  await updater.runOnce()
+  const document = await readHistoryDocument(historyPath)
+  assert.equal(document.records.length, 1)
+  assert.deepEqual(
+    [document.records[0].name, document.records[0].from, document.records[0].to, document.records[0].action],
+    ["plug", "1.0.0", "1.2.0", "updated"],
+  )
+  const read = await updater.readHistory()
+  assert.equal(read.records.length, 1)
+  assert.equal(read.historyPath, historyPath)
+})
+
+test("a dry run records the preview, once", async () => {
+  const { updater, historyPath } = await harness({ settings: { dryRun: true } })
+  await updater.runOnce()
+  await updater.runOnce()
+  const document = await readHistoryDocument(historyPath)
+  assert.deepEqual(document.records.map((record) => record.action), ["would-update"])
+})
+
+test("a failed update records the rollback", async () => {
+  const { updater, historyPath } = await harness({ failInstall: true })
+  await updater.runOnce()
+  const document = await readHistoryDocument(historyPath)
+  assert.equal(document.records.length, 1)
+  assert.equal(document.records[0].action, "failed")
+  assert.equal(document.records[0].rolledBack, true)
+  assert.match(document.records[0].reason, /install failed/)
+})
+
+test("a cycle that changes nothing leaves the history alone", async () => {
+  const { updater, historyPath } = await harness({
+    bundles: [{ name: "plug", version: "1.2.0", availability: "profile", installed: true, source: "^1.2.0" }],
+    fetchImpl: async () => ({ ok: true, json: async () => ({ version: "1.2.0" }) }),
+  })
+  await updater.runOnce()
+  assert.deepEqual((await readHistoryDocument(historyPath)).records, [])
+})
+
+test("the history keeps the newest records under the cap", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "dsh-auto-update-history-"))
+  const path = join(directory, "history.json")
+  const record = (name, from, to) => historyRecordOf({ name, installed: from, latest: to, action: "updated" }, "2026-11-05T00:00:00.000Z")
+  await appendHistory(path, [record("a", "1.0.0", "1.0.1")], { limit: 2 })
+  await appendHistory(path, [record("b", "1.0.0", "1.0.1")], { limit: 2 })
+  await appendHistory(path, [record("c", "1.0.0", "1.0.1")], { limit: 2 })
+  const document = await readHistoryDocument(path)
+  assert.deepEqual(document.records.map((item) => item.name), ["b", "c"])
+})
+
+test("the same outcome stored twice is folded", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "dsh-auto-update-history-"))
+  const path = join(directory, "history.json")
+  const record = historyRecordOf({ name: "a", installed: "1.0.0", latest: "1.0.1", action: "failed", reason: "network" }, "2026-11-05T00:00:00.000Z")
+  assert.equal(await appendHistory(path, [record], { limit: 10 }), 1)
+  assert.equal(await appendHistory(path, [record], { limit: 10 }), 0)
+  assert.equal((await readHistoryDocument(path)).records.length, 1)
+  const moved = { ...record, from: "1.0.1", to: "1.0.2" }
+  assert.equal(await appendHistory(path, [moved], { limit: 10 }), 1)
+  assert.equal((await readHistoryDocument(path)).records.length, 2)
+})
+
+test("a corrupt history file reads as empty and is replaced on the next write", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "dsh-auto-update-history-"))
+  const path = join(directory, "history.json")
+  await writeFile(path, "{not json", "utf8")
+  assert.deepEqual((await readHistoryDocument(path)).records, [])
+  const record = historyRecordOf({ name: "a", installed: "1.0.0", latest: "1.0.1", action: "updated" }, "2026-11-05T00:00:00.000Z")
+  assert.equal(await appendHistory(path, [record], { limit: 10 }), 1)
+  assert.deepEqual((await readHistoryDocument(path)).records.map((item) => item.name), ["a"])
+})
+
+test("clearing removes the stored records", async () => {
+  const { updater, historyPath } = await harness()
+  await updater.runOnce()
+  assert.equal(await updater.clearHistory(), 1)
+  assert.deepEqual((await readHistoryDocument(historyPath)).records, [])
+  assert.equal(await clearHistory(join(historyPath, "..", "missing.json")), 0)
 })

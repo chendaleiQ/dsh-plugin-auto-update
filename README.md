@@ -16,6 +16,7 @@
 - 只更新你勾选的包；本地 `link:` / `file:` 安装、锁定版本、报错的包一律跳过
 - 默认**不跨大版本**、**不装预发布**
 - 更新走 profile 里运行中的官方 `pluginManager`：profile 写锁、pnpm 执行、bundle 补丁校验、HMR 重载都由它负责；安装失败会把**旧版本装回去**
+- 每次更新都记进**更新记录**：插件页里直接看「谁、从哪个版本、到哪个版本、什么时候、成没成」
 
 ## 安装
 
@@ -37,6 +38,19 @@
 - 不能更新的包会置灰并说明原因（本地安装 / 锁定版本 / 存在错误）
 
 改动即时生效，不需要重启。
+
+## 更新记录
+
+详情页底部的第二块就是**更新记录**：按时间倒序列出每次真正发生的动作。
+
+- 一行一条：时间、包名、`旧版本 → 新版本`、结果（已更新 / 更新失败 / 可升级（演练））
+- 失败的记录带上回滚说明和原因（鼠标悬停可看完整原因）；更新了宿主半边会标「需重启生效」
+- **刷新** 重新读一次；**清空记录** 需要点两次确认（几秒内不点第二次就自动取消）
+- 记录只记「和版本有关」的动作：`current`（已经是最新）和 `error`（查不到版本）不写进来，免得记录被刷成流水账
+- 同一个包重复出现相同结果（同一个版本反复升级失败、演练反复看到同一个可升级版本）只记一次
+
+数据存在 `~/.dsh/plugin-auto-update-history.json`，最多保留 200 条（`historyLimit` 可改）。面板通过宿主半边提供的
+`GET /dsh-plugin-auto-update/history` 读取，删除走同一个地址的 `DELETE`；没有 web server 的部署（headless）里这块会提示接口不可用，记录仍写进日志。
 
 ## 语言
 
@@ -61,13 +75,13 @@
 
 ## 高级配置
 
-面板没覆盖的字段（`intervalHours` 默认 6 小时、`initialDelayMinutes`、`maxUpdatesPerRun`、`dryRun`、`registry`、`timeoutMs`、`logPath`）写在 profile patch 的 `config` 里，或覆盖 `~/.dsh/profiles/<profile>/cordis.patch.yml` 的同一行。改完需要重启。
+面板没覆盖的字段（`intervalHours` 默认 6 小时、`initialDelayMinutes`、`maxUpdatesPerRun`、`dryRun`、`registry`、`timeoutMs`、`logPath`、`historyPath`、`historyLimit`）写在 profile patch 的 `config` 里，或覆盖 `~/.dsh/profiles/<profile>/cordis.patch.yml` 的同一行。改完需要重启。
 
 ## 开发
 
 ```bash
-node test/index.test.mjs    # 宿主半边：检查与更新循环
-node test/client.test.mjs   # 渲染层：插槽注册、远端信封、置灰原因
+node test/index.test.mjs    # 宿主半边：检查、更新循环、更新记录的去重与上限
+node test/client.test.mjs   # 渲染层：插槽注册、远端信封、置灰原因、记录接口
 ```
 
 ## 协议

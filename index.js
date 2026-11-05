@@ -9,11 +9,19 @@
 import z from "@deepseek-ai/schemastery"
 
 import { DEFAULTS, createUpdater, resolveSettings } from "./lib/plan.js"
+import { createHistoryRoute } from "./lib/history-route.js"
 
 export * from "./lib/plan.js"
 
 /** Settings namespace: the profile entry id this plugin's row is addressed by. */
 const NAMESPACE = "auto-update"
+
+/**
+ * Route the panel reads the update history from. Absolute here, because the
+ * server answers absolute paths; the page resolves the document-relative form
+ * (`dsh-plugin-auto-update/history`) against its own base.
+ */
+const HISTORY_ROUTE = "/dsh-plugin-auto-update/history"
 
 /** Settings the plugin page edits; every field is volatile, so edits apply live. */
 export const Config = z.object({
@@ -30,6 +38,8 @@ export const Config = z.object({
   registry: z.string().default("https://registry.npmjs.org").volatile(),
   timeoutMs: z.number().default(20000).volatile(),
   logPath: z.string().default("~/.dsh/plugin-auto-update.log").volatile(),
+  historyPath: z.string().default("~/.dsh/plugin-auto-update-history.json").volatile(),
+  historyLimit: z.number().default(200).volatile(),
 })
 
 /**
@@ -94,6 +104,25 @@ export function apply(ctx, rawConfig) {
   // The page is ours; keep the settings service from generating one.
   ctx.inject(["settings"], (child) => {
     child.effect(() => child.settings.configure({ auto: false }, ctx.fiber), "auto-update: settings presentation")
+  })
+
+  /**
+   * The panel reads the update history over this route: the browser half is a
+   * page, so it cannot open a file, and the history is not a setting. The route
+   * is document-relative on the app's own server, carries no secrets, and is
+   * registered only where a web server exists (a headless profile has none).
+   */
+  ctx.inject(["webServer"], (child) => {
+    const handler = createHistoryRoute({
+      readHistory: () => updater.readHistory(),
+      clearHistory: () => updater.clearHistory(),
+      limitOf: () => settingsOf().historyLimit,
+    })
+    child.effect(() => child.webServer.register({
+      kind: "exact",
+      path: HISTORY_ROUTE,
+      handler,
+    }), "auto-update: history route")
   })
 
   /**

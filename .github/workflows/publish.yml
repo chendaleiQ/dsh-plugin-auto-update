@@ -21,6 +21,7 @@ jobs:
           node-version: 24
       - run: node test/index.test.mjs
       - run: node test/client.test.mjs
+      - run: node test/history-route.test.mjs
       - name: tag matches package.json
         run: |
           tag="${GITHUB_REF_NAME#v}"

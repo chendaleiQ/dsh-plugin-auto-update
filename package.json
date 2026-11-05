@@ -1,6 +1,6 @@
 {
   "name": "@chendaleiq/dsh-plugin-auto-update",
-  "version": "0.1.19",
+  "version": "0.2.0",
   "description": "Automatic updates for the plugin bundles you choose in DeepSeek Harness, per package, through the plugin manager",
   "license": "MIT",
   "type": "module",
@@ -31,7 +31,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node test/index.test.mjs"
+    "test": "node test/index.test.mjs && node test/client.test.mjs && node test/history-route.test.mjs"
   },
   "dsh": {
     "bundle": {

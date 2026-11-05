@@ -20,6 +20,8 @@ plugin page and tick the plugins that may upgrade themselves.
 - Updates go through the profile's running `pluginManager` — profile write lock,
   pnpm run, bundle-patch check and HMR reload stay with it. A failed install
   **reinstalls the previous version**
+- Every update lands in an **update history** on the plugin page: which package,
+  from which version to which, when, and whether it worked
 
 ## Install
 
@@ -47,6 +49,29 @@ Plugins → **DSH Plugin Auto Update**, at the bottom of the detail page:
 
 Edits apply immediately; no restart.
 
+## Update history
+
+The second section at the bottom of the detail page lists what the automatic
+updates actually did, newest first.
+
+- One row per action: time, package, `old → new`, outcome (updated / failed /
+  updatable on a dry run)
+- A failed row says it rolled back and carries the reason on hover; a host-half
+  update is marked "restart to apply"
+- **Refresh** reads the list again; **Clear history** asks for a second click
+  (the confirmation expires after a few seconds)
+- Only version-relevant actions are stored: `current` (already newest) and
+  `error` (the registry could not be read) stay in the log, so the list does not
+  fill up with cycles
+- A repeated identical outcome for one package (the same failing upgrade, the
+  same dry-run preview) is stored once
+
+The list lives in `~/.dsh/plugin-auto-update-history.json`, capped at 200 records
+(`historyLimit`). The panel reads it through the host half's
+`GET /dsh-plugin-auto-update/history` and clears it with `DELETE` on the same
+path; a deployment without a web server says the route is unavailable while the
+log still records every cycle.
+
 ## Language
 
 The copy follows DSH's language setting: Chinese by default, English once the app
@@ -71,14 +96,14 @@ is switched.
 
 Fields the panel leaves out (`intervalHours`, six hours by default,
 `initialDelayMinutes`, `maxUpdatesPerRun`, `dryRun`, `registry`, `timeoutMs`,
-`logPath`) live in this bundle's `config` in the profile patch, or as an
+`logPath`, `historyPath`, `historyLimit`) live in this bundle's `config` in the profile patch, or as an
 override in `~/.dsh/profiles/<profile>/cordis.patch.yml`. Those need a restart.
 
 ## Development
 
 ```bash
-node test/index.test.mjs    # the host half's update cycle
-node test/client.test.mjs   # the renderer half: slot, remote envelope, labels
+node test/index.test.mjs    # the host half: cycle, history folding and its cap
+node test/client.test.mjs   # the renderer half: slot, remote envelope, labels, history route
 ```
 
 ## License

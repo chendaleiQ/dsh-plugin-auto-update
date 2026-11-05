@@ -24,3 +24,6 @@
         registry: 'https://registry.npmjs.org'
         timeoutMs: 20000
         logPath: '~/.dsh/plugin-auto-update.log'
+        # The panel's update history: a capped JSON document, not the log.
+        historyPath: '~/.dsh/plugin-auto-update-history.json'
+        historyLimit: 200
