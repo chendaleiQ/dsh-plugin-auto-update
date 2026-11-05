@@ -164,7 +164,10 @@ export function apply(ctx, rawConfig) {
   }
 
   ctx.effect(() => {
-    void schedule()
+    // A rejected bootstrap must not be an unhandled rejection: on a host that
+    // turns those into a process exit, the whole plugin tree would never finish
+    // loading and the web app would never report ready.
+    void schedule().catch(() => {})
     return () => {
       stopped = true
       clearTimeout(timer)
@@ -200,5 +203,5 @@ export function apply(ctx, rawConfig) {
     }
   }, "auto-update: manager changes")
 
-  void updater.log({ kind: "plugin-started", pid: process.pid, platform: process.platform })
+  void updater.log({ kind: "plugin-started", pid: process.pid, platform: process.platform }).catch(() => {})
 }

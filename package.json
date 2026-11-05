@@ -1,6 +1,6 @@
 {
   "name": "@chendaleiq/dsh-plugin-auto-update",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Automatic updates for the plugin bundles you choose in DeepSeek Harness, per package, through the plugin manager",
   "license": "MIT",
   "type": "module",
@@ -28,10 +28,12 @@
     "cordis.patch.yml",
     "README.md",
     "README.en.md",
-    "LICENSE"
+    "LICENSE",
+    "test/smoke-web.mjs"
   ],
   "scripts": {
-    "test": "node test/index.test.mjs && node test/client.test.mjs && node test/history-route.test.mjs"
+    "test": "node test/index.test.mjs && node test/client.test.mjs && node test/history-route.test.mjs",
+    "smoke": "node test/smoke-web.mjs"
   },
   "dsh": {
     "bundle": {
