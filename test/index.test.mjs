@@ -334,3 +334,52 @@ test("clearing removes the stored records", async () => {
   assert.deepEqual((await readHistoryDocument(historyPath)).records, [])
   assert.equal(await clearHistory(join(historyPath, "..", "missing.json")), 0)
 })
+
+test("a failure that now says something else is news, not a repeat", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "dsh-auto-update-history-"))
+  const path = join(directory, "history.json")
+  const at = "2026-11-05T00:00:00.000Z"
+  const first = historyRecordOf({ name: "a", installed: "1.0.0", latest: "1.1.0", action: "failed", reason: "network" }, at)
+  const second = historyRecordOf({ name: "a", installed: "1.0.0", latest: "1.1.0", action: "failed", reason: "registry answered 500" }, at)
+  assert.equal(await appendHistory(path, [first], { limit: 10 }), 1)
+  assert.equal(await appendHistory(path, [second], { limit: 10 }), 1)
+  const document = await readHistoryDocument(path)
+  assert.deepEqual(document.records.map((record) => record.reason), ["network", "registry answered 500"])
+})
+
+test("the cap can swallow this call's own records, and the count says so", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "dsh-auto-update-history-"))
+  const path = join(directory, "history.json")
+  const at = "2026-11-05T00:00:00.000Z"
+  const records = ["a", "b", "c"].map((name) => historyRecordOf({ name, installed: "1.0.0", latest: "1.1.0", action: "updated" }, at))
+  assert.equal(await appendHistory(path, records, { limit: 2 }), 2)
+  assert.deepEqual((await readHistoryDocument(path)).records.map((record) => record.name), ["b", "c"])
+})
+
+test("a clear and an append that overlap leave a readable document, not a resurrection", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "dsh-auto-update-history-"))
+  const path = join(directory, "history.json")
+  const at = "2026-11-05T00:00:00.000Z"
+  const first = historyRecordOf({ name: "a", installed: "1.0.0", latest: "1.1.0", action: "updated" }, at)
+  const second = historyRecordOf({ name: "b", installed: "1.0.0", latest: "1.1.0", action: "updated" }, at)
+  await appendHistory(path, [first], { limit: 10 })
+  const [appended, cleared] = await Promise.all([
+    appendHistory(path, [second], { limit: 10 }),
+    clearHistory(path),
+  ])
+  assert.equal(appended, 1)
+  // The append ran first, so the clear removed both records it could see.
+  assert.equal(cleared, 2)
+  assert.deepEqual((await readHistoryDocument(path)).records, [])
+  assert.equal(await appendHistory(path, [second], { limit: 10 }), 1)
+  assert.deepEqual((await readHistoryDocument(path)).records.map((record) => record.name), ["b"])
+})
+
+test("clearing an empty history drops the file and reports nothing", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "dsh-auto-update-history-"))
+  const path = join(directory, "history.json")
+  assert.equal(await clearHistory(path), 0)
+  await appendHistory(path, [historyRecordOf({ name: "a", installed: "1.0.0", latest: "1.1.0", action: "updated" }, "2026-11-05T00:00:00.000Z")], { limit: 5 })
+  assert.equal(await clearHistory(path), 1)
+  assert.equal(await clearHistory(path), 0)
+})

@@ -8,7 +8,7 @@
 
 import z from "@deepseek-ai/schemastery"
 
-import { DEFAULTS, createUpdater, resolveSettings } from "./lib/plan.js"
+import { DEFAULTS, createUpdater, normalizeHistoryLimit, resolveSettings } from "./lib/plan.js"
 import { createHistoryRoute } from "./lib/history-route.js"
 
 export * from "./lib/plan.js"
@@ -116,7 +116,7 @@ export function apply(ctx, rawConfig) {
     const handler = createHistoryRoute({
       readHistory: () => updater.readHistory(),
       clearHistory: () => updater.clearHistory(),
-      limitOf: () => settingsOf().historyLimit,
+      limitOf: () => normalizeHistoryLimit(settingsOf().historyLimit),
     })
     child.effect(() => child.webServer.register({
       kind: "exact",

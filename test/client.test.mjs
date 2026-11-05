@@ -24,6 +24,7 @@ function load() {
         useSyncExternalStore: () => ({}),
         useState: () => [{ status: "ready", bundles: [] }, () => {}],
         useEffect: () => {},
+        useRef: () => ({ current: undefined }),
       }
     }
     if (name === "react/jsx-runtime") {
