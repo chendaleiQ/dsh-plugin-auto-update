@@ -383,3 +383,29 @@ test("clearing an empty history drops the file and reports nothing", async () =>
   assert.equal(await clearHistory(path), 1)
   assert.equal(await clearHistory(path), 0)
 })
+
+test("a generic refusal keeps the manager's own diagnostic", async () => {
+  // A manager whose removal is refused the way the plugin manager refuses one
+  // it cannot explain: code `operation-error` plus the text that says why.
+  const refusing = createUpdater({
+    readSettings: () => resolveSettings({ enabled: true, packages: ["*"], historyPath: join(tmpdir(), "unused-history.json"), logPath: join(tmpdir(), "unused.log") }),
+    logPath: join(tmpdir(), "unused.log"),
+    cooldownMs: 0,
+    fetchImpl: async () => ({ ok: true, json: async () => ({ version: "1.2.0" }) }),
+    manager: () => ({
+      async listBundles() {
+        return [{ name: "plug", version: "1.0.0", availability: "profile", installed: true, source: "^1.0.0" }]
+      },
+      async removeBundle() {
+        return { application: "failed", error: { code: "operation-error", diagnostic: "ERR_PNPM_FETCH_404  GET https://registry.npmjs.org/x: Not Found" } }
+      },
+      async installBundle() {
+        throw new Error("install must not run when the removal failed")
+      },
+    }),
+  })
+  const result = await refusing.runOnce()
+  assert.equal(result.decisions[0].action, "failed")
+  assert.match(result.decisions[0].reason, /operation-error/)
+  assert.match(result.decisions[0].reason, /ERR_PNPM_FETCH_404/)
+})

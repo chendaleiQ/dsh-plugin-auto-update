@@ -15,7 +15,7 @@ import vm from "node:vm"
 const SOURCE = await readFile(join(import.meta.dirname, "..", "lib", "client.js"), "utf8")
 
 /** Run the module against the stubs and return what it registered. */
-function load() {
+function load(options = {}) {
   const registered = []
   let module
   const require = (name) => {
@@ -53,7 +53,13 @@ function load() {
     URL,
     console,
   }
-  vm.runInNewContext(SOURCE, sandbox, { filename: "client.js" })
+  const context = vm.createContext(sandbox)
+  if (typeof options.fetch === "function") {
+    // A page-like fetch: it throws unless it runs on its own global object,
+    // which is exactly what a browser does to a detached `window.fetch`.
+    sandbox.fetch = options.fetch(vm.runInContext("globalThis", context))
+  }
+  vm.runInContext(SOURCE, context, { filename: "client.js" })
 
   const disposers = []
   const form = {
@@ -258,4 +264,36 @@ test("a failing shell carrier falls through to the page fetch", async () => {
     "dsh-plugin-auto-update/history",
     "http://127.0.0.1:60098/dsh-plugin-auto-update/history",
   ])
+})
+
+test("a browser fetch is called on its own object, not as a stray method", async () => {
+  const { module } = load({
+    fetch: (globalObject) => function pageFetch() {
+      if (this !== globalObject) {
+        throw new TypeError("Failed to execute 'fetch' on 'Window': Illegal invocation")
+      }
+      return Promise.resolve({ ok: true, json: async () => ({ ok: true, records: [], historyPath: "/tmp/history.json" }) })
+    },
+  })
+  const value = await module.internals.readRemoteHistory({ base: "http://127.0.0.1:50865/" })
+  assert.deepEqual(Array.from(value.records), [])
+  assert.equal(value.historyPath, "/tmp/history.json")
+})
+
+test("the shell carrier is called on its own object too", async () => {
+  const { module } = load()
+  const carrier = {
+    async fetch(url) {
+      if (this !== carrier) throw new TypeError("Illegal invocation")
+      return { ok: true, json: async () => ({ ok: true, records: [], historyPath: "/tmp/carrier.json" }) }
+    },
+  }
+  const value = await module.internals.readRemoteHistory({
+    transport: carrier,
+    base: "http://127.0.0.1:50865/",
+    fetchImpl: async () => {
+      throw new Error("the page fetch should not be reached")
+    },
+  })
+  assert.equal(value.historyPath, "/tmp/carrier.json")
 })
